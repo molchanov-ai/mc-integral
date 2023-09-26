@@ -60,6 +60,7 @@ class Integral(
     async(Job()) {
       if (cell.running) {
         println("branching")
+        println(func(cell.x))
         println(cell)
         // delay(1000)
         branch(cell)
