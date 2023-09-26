@@ -22,55 +22,60 @@ class Integral(
         println("Hello from hell")
         delay(1000)
         // start(Cell(3f))
-        branch(Cell(0f))
+        branch(Cell(0f, x=0.0, running = true))
 
         delay(1000 * 30)
+        println("RESULT")
         println(sum)
       }
     }
   }
 
   private suspend fun branch(cell: Cell): Unit = withContext(Dispatchers.IO) {
+    if (cell.energy > 9) {
+      return@withContext
+    }
+    val newStep = cell.step / 2
     val newCells = mutableListOf<Cell>()
-    newCells.add(Cell(cell.energy + 1))
-    newCells.add(Cell(cell.energy + 100))
+    val x1 = cell.x-cell.step
+    val x2 = cell.x+cell.step
+    val f1 = func(x1)
+    val f2 = func(x2)
+    newCells.add(Cell(cell.energy + 1, x=x1, step = newStep, running = f1 < f2))
+    newCells.add(Cell(cell.energy + 1, x=x2, step = newStep, running = f1 >= f2))
 
     // val branchPredicate = System.currentTimeMillis() % 10 >= 6
     // println("branch predicate for current=$current is $branchPredicate")
 
-    if (cell.energy == 999999f) {
+    if (cell.energy == 9f) {
       messages.emit(cell)
     } else {
-      runCell(newCells[0], true)
-      runCell(newCells[1], false)
-    }
-  }
-
-  private suspend fun runCell(cell: Cell, running: Boolean) = withContext(Dispatchers.IO) {
-    launch(Job()) {
-      if (running) {
-        println("branching")
-        println(cell.energy)
-        // delay(1000)
-        branch(cell)
-      } else {
-        println("collecting")
-        println(cell.energy)
-        messages.collect {
-          println("collected")
-          sum++;
-          println(cell.energy)
-          println(it.energy)
-        }
+      for (newCell in newCells) {
+        runCell(newCell)
       }
     }
   }
 
-  private fun chooseCell(cells: List<Cell>): Cell {
-    assert(cells.isNotEmpty())
-
-    // Return by max fun value with probability
-    return cells[0]
+  private suspend fun runCell(cell: Cell) = withContext(Dispatchers.IO) {
+    async(Job()) {
+      if (cell.running) {
+        println("branching")
+        println(cell)
+        // delay(1000)
+        branch(cell)
+      } else {
+        println("collecting")
+        println(cell)
+        messages.take(1).collect {
+          // Do stuff with cell
+          val funValue = func(it.x)
+          println("FUNCTION RESULT")
+          println(funValue)
+          cell.running = true
+        }
+        branch(cell)
+      }
+    }
   }
 }
 
@@ -80,7 +85,9 @@ data class State(
 
 data class Cell(
   val energy: Float,
-  val x: Int = 0,
+  val x: Double = 0.0,
+  val step: Double = 100.0,
+  var running: Boolean = false,
   var finalized: Boolean = false, // TODO: do we need this?
   val children: MutableList<Cell> = mutableListOf()
 )

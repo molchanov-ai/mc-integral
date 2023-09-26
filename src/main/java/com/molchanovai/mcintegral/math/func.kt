@@ -9,7 +9,7 @@ class MCFunction(private val f: (Double) -> Double) {
 
   }
 
-  operator fun invoke(x: Double) {
-
+  operator fun invoke(x: Double): Double {
+    return f(x)
   }
 }
