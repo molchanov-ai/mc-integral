@@ -30,15 +30,10 @@ class Integral(
     }
   }
 
-  private val running = mutableListOf<List<Int>>()
-
-  private suspend fun start(root: Cell) = withContext(Dispatchers.IO) {
-  }
-
   private suspend fun branch(cell: Cell): Unit = withContext(Dispatchers.IO) {
     val newCells = mutableListOf<Cell>()
-    newCells.add(Cell(cell.energy+1))
-    newCells.add(Cell(cell.energy+100))
+    newCells.add(Cell(cell.energy + 1))
+    newCells.add(Cell(cell.energy + 100))
 
     // val branchPredicate = System.currentTimeMillis() % 10 >= 6
     // println("branch predicate for current=$current is $branchPredicate")
@@ -46,28 +41,29 @@ class Integral(
     if (cell.energy == 999999f) {
       messages.emit(cell)
     } else {
-      run_cell(newCells[0], true)
-      run_cell(newCells[1], false)
+      runCell(newCells[0], true)
+      runCell(newCells[1], false)
     }
   }
 
-  private suspend fun run_cell(cell: Cell, running: Boolean) = withContext(Dispatchers.IO) { launch(Job()) {
-    if (running) {
-      println("branching")
-      println(cell.energy)
-      // delay(1000)
-      branch(cell)
-    } else {
-      println("collecting")
-      println(cell.energy)
-      messages.collect {
-        println("collected")
-        sum++;
+  private suspend fun runCell(cell: Cell, running: Boolean) = withContext(Dispatchers.IO) {
+    launch(Job()) {
+      if (running) {
+        println("branching")
         println(cell.energy)
-        println(it.energy)
+        // delay(1000)
+        branch(cell)
+      } else {
+        println("collecting")
+        println(cell.energy)
+        messages.collect {
+          println("collected")
+          sum++;
+          println(cell.energy)
+          println(it.energy)
+        }
       }
     }
-  }
   }
 
   private fun chooseCell(cells: List<Cell>): Cell {
