@@ -1,6 +1,7 @@
 import com.molchanovai.mcintegral.math.MCFunction
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import java.util.concurrent.atomic.AtomicInteger
 
 // TODO: can we set distribution?
 class Integral(
@@ -14,26 +15,25 @@ class Integral(
   private val cells = mutableMapOf<Cell, Int>(Cell(startEnergy) to -1)
   private val messages = MutableSharedFlow<Cell>()
 
-  private var sum = 0
+  private var inRunning = AtomicInteger(0)
 
   fun start(): Unit {
     runBlocking {
-      launch {
-        println("Hello from hell")
-        delay(1000)
-        // start(Cell(3f))
-        branch(Cell(0f, x=0.0, running = true))
+      println("Hello from hell")
+      delay(1000)
+      // start(Cell(3f))
+      inRunning.set(1)
+      branch(Cell(0f, x = 0.0, running = true))
 
-        delay(1000 * 30)
-        println("RESULT")
-        println(sum)
-      }
+      delay(1000 * 30)
+      println("END")
     }
   }
 
-  private suspend fun branch(cell: Cell): Unit = withContext(Dispatchers.IO) {
+  private suspend fun branch(cell: Cell): Unit {
+    assert(cell.running)
     if (cell.energy > 9) {
-      return@withContext
+      return
     }
     val newStep = cell.step / 2
     val newCells = mutableListOf<Cell>()
@@ -56,7 +56,7 @@ class Integral(
     }
   }
 
-  private suspend fun runCell(cell: Cell) = withContext(Dispatchers.IO) {
+  private suspend fun runCell(cell: Cell) = coroutineScope {
     async(Job()) {
       if (cell.running) {
         println("branching")
