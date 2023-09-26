@@ -48,6 +48,7 @@ class Integral(
     // println("branch predicate for current=$current is $branchPredicate")
 
     if (cell.energy == 9f) {
+      // TODO: decrease inRunning
       messages.emit(cell)
     } else {
       for (newCell in newCells) {
@@ -67,6 +68,7 @@ class Integral(
       } else {
         println("collecting")
         println(cell)
+        // TODO: check inRunning inside
         messages.take(1).collect {
           // Do stuff with cell
           val funValue = func(it.x)
