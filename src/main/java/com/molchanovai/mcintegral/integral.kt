@@ -11,8 +11,11 @@ class Integral(
   private val startEnergy: Float = 1.0f,
   private val loss: Float = 0.01f, // Energy loss that
   ) {
-
-  private val cells = mutableMapOf<Cell, Int>(Cell(startEnergy) to -1)
+  // Must be event
+  // Add drawer with event
+  // Draw realtime approximation
+  // Remove stupid "9" and delay 30 secs
+  // Add stochastic
   private val messages = MutableSharedFlow<Cell>()
 
   private var inRunning = AtomicInteger(0)
