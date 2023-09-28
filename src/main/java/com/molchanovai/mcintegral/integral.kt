@@ -26,11 +26,15 @@ class Integral(
     runBlocking {
       println("Hello from hell")
       delay(1000)
-      // start(Cell(3f))
       inRunning.set(1)
       branch(Cell(0f, x = 0.0, running = true))
 
-      delay(1000 * 30)
+      var timePassed = 0L
+      messages.takeWhile {
+        timePassed < 100000L
+      }.collect {
+        timePassed++
+      }
       println("END")
     }
   }
@@ -38,9 +42,7 @@ class Integral(
   // Invariant: at least one must be running in out
   private suspend fun branch(cell: Cell): Unit {
     assert(cell.running)
-    if (cell.energy > 9) {
-      return
-    }
+
     val newStep = cell.step / 2
     val newCells = mutableListOf<Cell>()
     val x1 = cell.x-cell.step
@@ -66,6 +68,7 @@ class Integral(
     }
   }
 
+  // Here we can set different dispatcher
   private suspend fun runCell(cell: Cell) = coroutineScope {
     async(Job()) {
       if (cell.running) {
