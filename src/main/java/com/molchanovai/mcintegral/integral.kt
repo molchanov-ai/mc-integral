@@ -4,12 +4,14 @@ import kotlinx.coroutines.flow.*
 import java.util.concurrent.atomic.AtomicInteger
 
 // TODO: can we set distribution?
+// TODO: check consistency
 class Integral(
   private val func: MCFunction,
   private val prob: Float = 0.3f, // Probability that the cell will create children
   private val shareDistribution: Float = 0.5f, // Here must be distribution like {0-0.1 part: x, 0.1-0.5 part: y, ...}
   private val startEnergy: Float = 1.0f,
   private val loss: Float = 0.01f, // Energy loss that
+  private val maxRunning: Int = 1
   ) {
   // Must be event
   // Add drawer with event
@@ -33,6 +35,7 @@ class Integral(
     }
   }
 
+  // Invariant: at least one must be running in out
   private suspend fun branch(cell: Cell): Unit {
     assert(cell.running)
     if (cell.energy > 9) {
@@ -51,9 +54,12 @@ class Integral(
     // println("branch predicate for current=$current is $branchPredicate")
 
     if (cell.energy == 9f) {
-      // TODO: decrease inRunning
+      inRunning.decrementAndGet()
+      // TODO: emit terminate event
       messages.emit(cell)
     } else {
+      // TODO: emit event state
+      messages.emit(cell)
       for (newCell in newCells) {
         runCell(newCell)
       }
@@ -71,14 +77,18 @@ class Integral(
       } else {
         println("collecting")
         println(cell)
-        // TODO: check inRunning inside
-        messages.take(1).collect {
-          // Do stuff with cell
-          val funValue = func(it.x)
-          println("FUNCTION RESULT")
-          println(funValue)
-          cell.running = true
-        }
+        // TODO: filter events
+        // TODO: print coro number
+        messages.filter { inRunning.get() < maxRunning }.take(1)
+          .collect {
+            val funValue = func(it.x)
+            println("FUNCTION RESULT")
+            println(funValue)
+            println(inRunning.get())
+            cell.running = true
+            inRunning.incrementAndGet()
+          }
+
         branch(cell)
       }
     }
