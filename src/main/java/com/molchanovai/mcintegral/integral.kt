@@ -5,13 +5,14 @@ import java.util.concurrent.atomic.AtomicInteger
 
 // TODO: can we set distribution?
 // TODO: check consistency
+// TODO: stochastic step
 class Integral(
   private val func: MCFunction,
   private val prob: Float = 0.3f, // Probability that the cell will create children
   private val shareDistribution: Float = 0.5f, // Here must be distribution like {0-0.1 part: x, 0.1-0.5 part: y, ...}
   private val startEnergy: Float = 1.0f,
   private val loss: Float = 0.01f, // Energy loss that
-  private val maxRunning: Int = 1
+  private val maxRunning: Int = 3
   ) {
   // Must be event
   // Add drawer with event
@@ -20,13 +21,10 @@ class Integral(
   // Add stochastic
   private val messages = MutableSharedFlow<Cell>()
 
-  private var inRunning = AtomicInteger(0)
-
   fun start(): Unit {
     runBlocking {
       println("Hello from hell")
       delay(1000)
-      inRunning.set(1)
       branch(Cell(0f, x = 0.0, running = true))
 
       var timePassed = 0L
@@ -55,8 +53,7 @@ class Integral(
     // val branchPredicate = System.currentTimeMillis() % 10 >= 6
     // println("branch predicate for current=$current is $branchPredicate")
 
-    if (cell.energy == 9f) {
-      inRunning.decrementAndGet()
+    if (cell.stopPredicate()) {
       // TODO: emit terminate event
       messages.emit(cell)
     } else {
@@ -71,29 +68,11 @@ class Integral(
   // Here we can set different dispatcher
   private suspend fun runCell(cell: Cell) = coroutineScope {
     async(Job()) {
-      if (cell.running) {
-        println("branching")
-        println(func(cell.x))
-        println(cell)
-        // delay(1000)
-        branch(cell)
-      } else {
-        println("collecting")
-        println(cell)
-        // TODO: filter events
-        // TODO: print coro number
-        messages.filter { inRunning.get() < maxRunning }.take(1)
-          .collect {
-            val funValue = func(it.x)
-            println("FUNCTION RESULT")
-            println(funValue)
-            println(inRunning.get())
-            cell.running = true
-            inRunning.incrementAndGet()
-          }
-
-        branch(cell)
-      }
+      println("branching")
+      println(func(cell.x))
+      println(cell)
+      // delay(1000)
+      branch(cell)
     }
   }
 }
@@ -109,4 +88,8 @@ data class Cell(
   var running: Boolean = false,
   var finalized: Boolean = false, // TODO: do we need this?
   val children: MutableList<Cell> = mutableListOf()
-)
+) {
+  fun stopPredicate(): Boolean {
+    return energy >= 9f
+  }
+}
