@@ -1,14 +1,16 @@
+package com.molchanovai.mcintegral
+
+import com.molchanovai.mcintegral.events.EventBase
 import com.molchanovai.mcintegral.math.MCFunction
+import com.molchanovai.mcintegral.stats.Distribution
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
-// TODO: check consistency
-// TODO: stochastic step
-// TODO: binomial distribution
 class Integral(
   private val func: MCFunction,
   private val branchProb: Float = 0.3f, // Probability that the cell will create children
-  private val shareDistribution: Float = 0.5f, // Here must be distribution like {0-0.1 part: x, 0.1-0.5 part: y, ...}
+  private val shareDistribution: Float = 0.5f, // Here must be distribution law like {0-0.1 part: x, 0.1-0.5 part: y, ...}
+  private val childrenNumber: Int = 3, // Must be stochastic
   private val startEnergy: Float = 1.0f,
   private val loss: Float = 0.01f, // Energy loss that
   ) {
@@ -17,12 +19,13 @@ class Integral(
   // Draw realtime approximation
   // Remove stupid "9" and delay 30 secs
   // Add stochastic
-  private val messages = MutableSharedFlow<Cell>()
+  private val messages = MutableSharedFlow<EventBase>()
 
   fun start(): Unit {
     runBlocking {
       println("Starting...")
       delay(1000)
+
       branch(Cell(0f, x = 0.0))
 
       var timePassed = 0L
@@ -37,28 +40,37 @@ class Integral(
 
   // Invariant: at least one must be running in out
   private suspend fun branch(cell: Cell): Unit {
-    val newStep = cell.step / 2
-    val newCells = mutableListOf<Cell>()
-    val x1 = cell.x-cell.step
-    val x2 = cell.x+cell.step
-    val f1 = func(x1)
-    val f2 = func(x2)
-    newCells.add(Cell(cell.energy + 1, x=x1, step = newStep))
-    newCells.add(Cell(cell.energy + 1, x=x2, step = newStep))
-
-    val branchPredicate = System.currentTimeMillis() % 100 >= branchProb * 100
-    if (branchPredicate) {
-
-    }
-
     if (cell.stopPredicate()) {
-      // TODO: emit terminate event
-      messages.emit(cell)
+      cell.finalized = true
+      messages.emit(EventBase.EventTerminate(cell))
     } else {
-      // TODO: emit event state
-      messages.emit(cell)
-      for (newCell in newCells) {
-        runCell(newCell)
+
+      val newStep = cell.step / 2
+
+      // For future: Must be based on history
+      val willBranch = Distribution.Bernoulli(branchProb).branchPrediction()
+
+      // Run the same state
+      if (!willBranch) {
+        messages.emit(EventBase.BranchEvent(cell, cell))
+        runCell(cell)
+      } else {
+        val points =
+          Distribution.Uniform.branchPoints(cell.x - newStep..cell.x + newStep, childrenNumber)
+        val values = points.map { func(it) }
+        // TODO: set more energy where function is more close to extreme point
+        val cells = List(values.size) { i ->
+          Cell(
+            cell.energy + 1,
+            x = points[i],
+            step = newStep
+          )
+        }
+
+        cells.forEach {
+          messages.emit(EventBase.BranchEvent(cell, it))
+          runCell(it)
+        }
       }
     }
   }

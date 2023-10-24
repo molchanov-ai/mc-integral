@@ -1,6 +1,5 @@
 package com.molchanovai.mcintegral
 
-import Integral
 import com.molchanovai.mcintegral.math.MCFunction
 
 fun main() {

@@ -8,6 +8,7 @@ sealed class Distribution {
    */
   // TODO: must be multidimensional
   abstract fun branchPoints(range: ClosedFloatingPointRange<Double>, num: Int): List<Double>
+  abstract fun branchPrediction(): Boolean
 
   data object Uniform : Distribution() {
     override fun branchPoints(range: ClosedFloatingPointRange<Double>, num: Int): List<Double> {
@@ -23,11 +24,20 @@ sealed class Distribution {
 
       return ret
     }
+
+    override fun branchPrediction(): Boolean {
+      TODO("Not yet implemented")
+    }
   }
 
-//  class Bernoulli(p: Float) : Distribution() {
-//    override fun branchPoints(range: ClosedFloatingPointRange<Double>, num: Int): List<Double> {
-//      val
-//    }
-//  }
+  class Bernoulli(private val p: Float) : Distribution() {
+    override fun branchPoints(range: ClosedFloatingPointRange<Double>, num: Int): List<Double> {
+      TODO("Not yet implemented")
+    }
+
+    override fun branchPrediction(): Boolean {
+      return System.currentTimeMillis() % 10 >= p
+    }
+
+  }
 }
