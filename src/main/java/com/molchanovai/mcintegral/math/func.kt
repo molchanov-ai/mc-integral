@@ -1,5 +1,6 @@
 package com.molchanovai.mcintegral.math
 
+// TODO: must be multidimensional
 class MCFunction(private val f: (Double) -> Double) {
   fun argMin(xs: List<Double>) {
 
