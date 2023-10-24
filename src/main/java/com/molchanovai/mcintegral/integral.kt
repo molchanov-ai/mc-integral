@@ -33,6 +33,9 @@ class Integral(
         timePassed < 100000L
       }.collect {
         timePassed++
+        if (it is EventBase.EventTerminate) {
+          println(func(it.cell.x))
+        }
       }
       println("END")
     }
