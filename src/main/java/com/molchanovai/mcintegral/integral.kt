@@ -6,6 +6,7 @@ import com.molchanovai.mcintegral.stats.Distribution
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
+// TODO: add mode how to run: one thread or otherwise
 class Integral(
   private val func: MCFunction,
   private val branchProb: Float = 0.3f, // Probability that the cell will create children
