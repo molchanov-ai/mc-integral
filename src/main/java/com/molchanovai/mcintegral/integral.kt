@@ -5,6 +5,9 @@ import com.molchanovai.mcintegral.math.MCFunction
 import com.molchanovai.mcintegral.stats.Distribution
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import org.jetbrains.letsPlot.export.ggsave
+import org.jetbrains.letsPlot.geom.geomPoint
+import org.jetbrains.letsPlot.letsPlot
 
 // TODO: add mode how to run: one thread or otherwise
 class Integral(
@@ -30,12 +33,22 @@ class Integral(
       branch(Cell(0f, x = 0.0))
 
       var timePassed = 0L
+      val xs = mutableListOf<Double>()
       messages.takeWhile {
         timePassed < 100000L
       }.collect {
         timePassed++
-        if (it is EventBase.EventTerminate) {
-          println(func(it.cell.x))
+        if (it is EventBase.BranchEvent) {
+          println(func(it.child.x))
+          xs.add(it.child.x)
+          val ys = xs.map { x -> func(x) }
+          val data = mapOf<String, Any>("x" to xs, "y" to ys)
+
+          val fig = letsPlot(data) + geomPoint(
+            color = "dark-green",
+          ) { x = "x"; y = "y" }
+
+          ggsave(fig, "plot.png")
         }
       }
       println("END")
