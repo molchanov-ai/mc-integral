@@ -13,11 +13,24 @@ repositories { // Sources of dependencies. See 2️⃣
     mavenCentral() // Maven Central Repository. See 3️⃣
 }
 
+val letsPlotVersion = extra["letsPlot.version"] as String
+val letsPlotKotlinVersion = extra["letsPlotKotlin.version"] as String
+val slf4jVersion = extra["slf4j.version"] as String
+
 dependencies { // All the libraries you want to use. See 4️⃣
     // Copy dependencies' names after you find them in a repository
     testImplementation(kotlin("test")) // The Kotlin test library
 //    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.10")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+
+    implementation("org.jetbrains.lets-plot:lets-plot-kotlin-jvm:$letsPlotKotlinVersion")
+    implementation("org.jetbrains.lets-plot:platf-awt-jvm:$letsPlotVersion")
+    implementation("org.jetbrains.lets-plot:deprecated-in-v4-jvm:$letsPlotVersion")
+
+    //    For PNG export demo
+    implementation("org.jetbrains.lets-plot:lets-plot-image-export:$letsPlotVersion")
+
+    implementation("org.slf4j:slf4j-simple:$slf4jVersion")  // Enable logging to console
 }
 
 tasks.test { // See 5️⃣
