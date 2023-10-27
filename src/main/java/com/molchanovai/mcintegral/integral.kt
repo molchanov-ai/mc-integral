@@ -56,7 +56,7 @@ class Integral(
   }
 
   // Invariant: at least one must be running in out
-  private suspend fun branch(cell: Cell): Unit {
+  private fun CoroutineScope.branch(cell: Cell): Job = launch {
     if (cell.stopPredicate()) {
       cell.finalized = true
       messages.emit(EventBase.EventTerminate(cell))
@@ -93,10 +93,8 @@ class Integral(
   }
 
   // Here we can set different dispatcher
-  private suspend fun runCell(cell: Cell) = coroutineScope {
-    async(Job()) {
+  private fun CoroutineScope.runCell(cell: Cell) {
       branch(cell)
-    }
   }
 }
 
