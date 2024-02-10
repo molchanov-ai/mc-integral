@@ -1,5 +1,9 @@
 package com.molchanovai.mcintegral.stats
 
+import space.kscience.kmath.samplers.GaussianSampler
+
+//import space.kscience.kmath
+
 sealed class Distribution {
   /**
    * @param range - range where to search points
@@ -38,6 +42,9 @@ sealed class Distribution {
     override fun branchPrediction(): Boolean {
       return System.currentTimeMillis() % 10 >= p
     }
+  }
 
+  class KScienceTest {
+    val sampler = GaussianSampler(0.0, 1.0)
   }
 }

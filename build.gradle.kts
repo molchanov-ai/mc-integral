@@ -10,7 +10,11 @@ group = "org.molchanov.ai" // A company name, for example, `org.jetbrains`
 version = "1.0-SNAPSHOT" // Version to assign to the built artifact
 
 repositories { // Sources of dependencies. See 2️⃣
-    mavenCentral() // Maven Central Repository. See 3️⃣
+    mavenCentral() // Maven Central Repository. See 3️⃣,
+    maven("https://repo.kotlin.link")
+//    maven {
+//        url = uri("https://maven.sciprog.center/spc")
+//    }
 }
 
 val letsPlotVersion = extra["letsPlot.version"] as String
@@ -22,6 +26,10 @@ dependencies { // All the libraries you want to use. See 4️⃣
     testImplementation(kotlin("test")) // The Kotlin test library
 //    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.10")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+
+    api("space.kscience:kmath-core:0.3.1")
+//    implementation("space.kscience:kmath-stat:0.4.0-dev-1")
+    implementation("space.kscience:kmath-stat:0.3.1")
 
     implementation("org.jetbrains.lets-plot:lets-plot-kotlin-jvm:$letsPlotKotlinVersion")
     implementation("org.jetbrains.lets-plot:platf-awt-jvm:$letsPlotVersion")
