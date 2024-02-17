@@ -1,5 +1,7 @@
 package com.molchanovai.mcintegral.stats
 
+import space.kscience.kmath.distributions.UniformDistribution
+import space.kscience.kmath.random.DefaultGenerator
 import space.kscience.kmath.samplers.GaussianSampler
 
 //import space.kscience.kmath
@@ -46,5 +48,11 @@ sealed class Distribution {
 
   class KScienceTest {
     val sampler = GaussianSampler(0.0, 1.0)
+    val uniformDist = UniformDistribution(0.0..1.0)
+
+    suspend fun test() {
+      val chain = uniformDist.sample(DefaultGenerator())
+      val next = chain.next()
+    }
   }
 }
