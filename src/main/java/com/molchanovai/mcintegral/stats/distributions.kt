@@ -34,6 +34,18 @@ sealed class Distribution {
     override fun branchPrediction(): Boolean {
       TODO("Not yet implemented")
     }
+
+    suspend fun sampleRange(range: ClosedFloatingPointRange<Double>, num: Int): List<Double> {
+      val ret = mutableListOf<Double>()
+
+      val uniformDist = UniformDistribution(range)
+      val chain = uniformDist.sample(DefaultGenerator())
+      for (i in 0..<num) {
+        ret.add(chain.next())
+      }
+
+      return ret
+    }
   }
 
   class Bernoulli(private val p: Float) : Distribution() {

@@ -62,31 +62,30 @@ class Integral(
       messages.emit(EventBase.EventTerminate(cell))
     } else {
 
-      val newStep = cell.step / 2
+      val newStep = cell.step
 
-      // For future: Must be based on history
+      // For future: Must be based on history. Or on function min or max approx
       val willBranch = Distribution.Bernoulli(branchProb).branchPrediction()
 
       // Run the same state
       if (!willBranch) {
         messages.emit(EventBase.BranchEvent(cell, cell))
-        runCell(cell)
+        cell.reduceEnergyUnbranched()
+        branch(cell)
       } else {
-        val points =
-          Distribution.Uniform.branchPoints(cell.x - newStep..cell.x + newStep, childrenNumber)
+        val points = Distribution.Uniform.sampleRange(cell.x - newStep..cell.x + newStep, childrenNumber)
         val values = points.map { func(it) }
         // TODO: set more energy where function is more close to extreme point
         val cells = List(values.size) { i ->
           Cell(
             cell.energy + 1,
             x = points[i],
-            step = newStep
           )
         }
 
         cells.forEach {
           messages.emit(EventBase.BranchEvent(cell, it))
-          runCell(it)
+          branch(it)
         }
       }
     }
@@ -103,13 +102,17 @@ data class State(
 )
 
 data class Cell(
-  val energy: Float,
+  var energy: Float,
   val x: Double = 0.0,
-  val step: Double = 100.0,
+  val step: Double = 0.1,
   var finalized: Boolean = false, // TODO: do we need this?
   val children: MutableList<Cell> = mutableListOf()
 ) {
   fun stopPredicate(): Boolean {
     return energy >= 9f
+  }
+
+  fun reduceEnergyUnbranched() {
+    energy -= 1f
   }
 }
