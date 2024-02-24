@@ -15,7 +15,7 @@ class Integral(
   private val branchProb: Float = 0.3f, // Probability that the cell will create children
   private val shareDistribution: Float = 0.5f, // Here must be distribution law like {0-0.1 part: x, 0.1-0.5 part: y, ...}
   private val childrenNumber: Int = 3, // Must be stochastic
-  private val startEnergy: Float = 1.0f,
+  private val startEnergy: Float = 100.0f,
   private val loss: Float = 0.01f, // Energy loss that
   ) {
   // Must be event
@@ -30,13 +30,13 @@ class Integral(
       println("Starting...")
       delay(1000)
 
-      branch(Cell(0f, x = 0.0))
+      branch(Cell(startEnergy, x = 5.0))
 
       var timePassed = 0L
       val xs = mutableListOf<Double>()
       messages.takeWhile {
         timePassed < 100000L
-      }.collect {
+      }.collect {// TODO: boost
         timePassed++
         if (it is EventBase.BranchEvent) {
           println(func(it.child.x))
@@ -73,13 +73,19 @@ class Integral(
         cell.reduceEnergyUnbranched()
         branch(cell)
       } else {
+        val prevValue = func(cell.x)
         val points = Distribution.Uniform.sampleRange(cell.x - newStep..cell.x + newStep, childrenNumber)
-        val values = points.map { func(it) }
-        // TODO: set more energy where function is more close to extreme point
+        val pointsSorted = points.sortedBy { func(it) }
+        val values = pointsSorted.map { func(it) }
+
+        var fullEnergy = cell.energy
         val cells = List(values.size) { i ->
+//          val prevEnergy = fullEnergy
+          val takingEnergy = 0.9f * fullEnergy
+          fullEnergy -= takingEnergy
           Cell(
-            cell.energy + 1,
-            x = points[i],
+            if (i == values.size-1) fullEnergy else takingEnergy,
+            x = pointsSorted[i],
           )
         }
 
@@ -104,12 +110,12 @@ data class State(
 data class Cell(
   var energy: Float,
   val x: Double = 0.0,
-  val step: Double = 0.1,
+  val step: Double = 2.0,
   var finalized: Boolean = false, // TODO: do we need this?
   val children: MutableList<Cell> = mutableListOf()
 ) {
   fun stopPredicate(): Boolean {
-    return energy >= 9f
+    return energy <= 0f
   }
 
   fun reduceEnergyUnbranched() {
