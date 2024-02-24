@@ -30,7 +30,7 @@ class Integral(
       println("Starting...")
       delay(1000)
 
-      branch(Cell(startEnergy, x = 5.0))
+      branch(Cell(startEnergy, x = 50.0))
 
       var timePassed = 0L
       val xs = mutableListOf<Double>()
@@ -64,7 +64,6 @@ class Integral(
 
       val newStep = cell.step
 
-      // For future: Must be based on history. Or on function min or max approx
       val willBranch = Distribution.Bernoulli(branchProb).branchPrediction()
 
       // Run the same state
@@ -81,7 +80,7 @@ class Integral(
         var fullEnergy = cell.energy
         val cells = List(values.size) { i ->
 //          val prevEnergy = fullEnergy
-          val takingEnergy = 0.9f * fullEnergy
+          val takingEnergy = 0.99f * fullEnergy
           fullEnergy -= takingEnergy
           Cell(
             if (i == values.size-1) fullEnergy else takingEnergy,
@@ -110,7 +109,7 @@ data class State(
 data class Cell(
   var energy: Float,
   val x: Double = 0.0,
-  val step: Double = 2.0,
+  val step: Double = 10.0,
   var finalized: Boolean = false, // TODO: do we need this?
   val children: MutableList<Cell> = mutableListOf()
 ) {
@@ -119,6 +118,6 @@ data class Cell(
   }
 
   fun reduceEnergyUnbranched() {
-    energy -= 1f
+    energy -= 50f
   }
 }

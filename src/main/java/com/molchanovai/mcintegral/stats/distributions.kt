@@ -54,7 +54,7 @@ sealed class Distribution {
     }
 
     override fun branchPrediction(): Boolean {
-      return System.currentTimeMillis() % 10 >= p
+      return (System.currentTimeMillis() % 10) * 0.1 <= p
     }
   }
 
