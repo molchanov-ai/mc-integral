@@ -42,6 +42,9 @@ class Integral(
           println(func(it.child.x))
           xs.add(it.child.x)
           val ys = xs.map { x -> func(x) }
+          val minY = ys.min()
+          println("min=$minY")
+
           val data = mapOf<String, Any>("x" to xs, "y" to ys)
 
           val fig = letsPlot(data) + geomPoint(
@@ -109,7 +112,7 @@ data class State(
 data class Cell(
   var energy: Float,
   val x: Double = 0.0,
-  val step: Double = 10.0,
+  val step: Double = 20.0,
   var finalized: Boolean = false, // TODO: do we need this?
   val children: MutableList<Cell> = mutableListOf()
 ) {
